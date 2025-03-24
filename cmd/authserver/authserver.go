@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 	jwt5 "github.com/golang-jwt/jwt/v5"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients"
@@ -343,4 +344,14 @@ func LogoutHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
+}
+
+func HandleNoRoute() func(c *gin.Context) {
+	fmt.Println("handleNoRoute")
+	return func(c *gin.Context) {
+		fmt.Println("handleNoRoute 5")
+		claims := jwt.ExtractClaims(c)
+		log.Printf("NoRoute claims: %#v\n", claims)
+		c.JSON(404, gin.H{"code": "PAGE_NOT_FOUND", "message": "Page not found"})
+	}
 }

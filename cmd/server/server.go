@@ -11,7 +11,9 @@ import (
 	"gopkg.in/yaml.v2"
 	"log"
 	"net/http"
+	myapi "yaml/api"
 	"yaml/api/models/login"
+	v22 "yaml/api/v2"
 	"yaml/cmd/authserver"
 	"yaml/common"
 	"yaml/common/config"
@@ -117,11 +119,22 @@ func run() error {
 
 	router := gin.Default()
 	serverport := fmt.Sprintf("0.0.0.0:%d", newCfg.Server.Port)
-	//router.GET("test", myapi.PrintMessage).Use(myapi.PrintMessage)
+
 	router.POST("login", authserver.LoginHandler)
 	router.POST("logout", authserver.LogoutHandler)
 	router.POST("refreshtoken", authserver.RefreshTokenHandler)
+
+	// 當沒有路由的配置時 會走這個
+	router.NoRoute(authserver.AuthMiddleware(), authserver.HandleNoRoute())
+	// 這個需要注意順序router.Use 如果在 login 前面 那login 會被要求  token
+	router.Use(authserver.AuthMiddleware())
+
+	router.GET("test", myapi.PrintMessage)
 	router.GET("protected", authserver.AuthMiddleware(), protectedHandler)
+	router.GET("hello2", v22.Test2)
+
+	auth := router.Group("/auth")
+	auth.GET("hello2", v22.Test2)
 
 	router.Run(serverport)
 
