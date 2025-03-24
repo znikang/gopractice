@@ -1,0 +1,6 @@
+server:
+  port: 8848
+  host: "192.168.1.15"
+  namespace: "bbbb"
+  dataid: "mysqltest"
+  group: "DEFAULT_GROUP"
