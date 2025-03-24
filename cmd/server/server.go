@@ -11,6 +11,8 @@ import (
 	"gopkg.in/yaml.v2"
 	"log"
 	"net/http"
+
+	"yaml/Database"
 	myapi "yaml/api"
 	"yaml/api/models/login"
 	v22 "yaml/api/v2"
@@ -59,7 +61,10 @@ func getNacosConfig(client config_client.IConfigClient, dataID, group string) (*
 
 	return &cfg, nil
 }
-
+func initTools() {
+	common.RedisCli = yamlredis.InitializeRedis()
+	common.OrmCli = Database.InitializeDatabases()
+}
 func run() error {
 
 	cfg, err := config.LoadConfig(configYml)
@@ -115,7 +120,7 @@ func run() error {
 		},
 	})
 
-	common.RedisCli = yamlredis.InitializeRedis()
+	initTools()
 
 	router := gin.Default()
 	serverport := fmt.Sprintf("0.0.0.0:%d", newCfg.Server.Port)

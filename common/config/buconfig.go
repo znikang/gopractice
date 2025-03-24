@@ -14,4 +14,12 @@ type BuConfig struct {
 		Password string `yaml:"password"`
 		DB       int    `yaml:"db"`
 	} `yaml:"redis"`
+
+	Database struct {
+		Port     int    `yaml:"port"`
+		Host     string `yaml:"host"`
+		Username string `yaml:"username"`
+		Password string `yaml:"password"`
+		DB       string `yaml:"db"`
+	} `yaml:"mysql"`
 }

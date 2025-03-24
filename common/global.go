@@ -27,4 +27,10 @@ func init() {
 	Bargconfig.Redis.Host = "127.0.0.1"
 	Bargconfig.Redis.Password = ""
 	Bargconfig.Redis.DB = 0
+
+	Bargconfig.Database.DB = "gormtest"
+	Bargconfig.Database.Username = "admin"
+	Bargconfig.Database.Username = "1qaz@WSX"
+	Bargconfig.Database.Port = 3306
+	Bargconfig.Database.Host = "192.168.1.171"
 }

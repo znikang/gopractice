@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"os"
+	"yaml/cmd/authserver"
 	"yaml/cmd/nacos"
+	ormserver "yaml/cmd/orm"
 	"yaml/cmd/server"
 	"yaml/cmd/version"
 )
@@ -40,6 +42,9 @@ func init() {
 	rootCmd.AddCommand(version.StartCmd)
 	rootCmd.AddCommand(server.StartCmd)
 	rootCmd.AddCommand(nacos.StartCmd)
+	rootCmd.AddCommand(ormserver.StartCmd)
+	rootCmd.AddCommand(authserver.StartCmd)
+
 }
 
 func Execute() {
