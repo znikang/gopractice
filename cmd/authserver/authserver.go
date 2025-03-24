@@ -99,8 +99,8 @@ func run() error {
 	fmt.Println("✅ 成功加載 Nacos 配置！")
 	common.Bargconfig = *newCfg
 	err = client.ListenConfig(vo.ConfigParam{
-		DataId: "mysqltest",
-		Group:  "DEFAULT_GROUP",
+		DataId: cfg.Server.Dataid,
+		Group:  cfg.Server.Group,
 		OnChange: func(namespace, group, dataId, data string) {
 			fmt.Println("🔄 檢測到配置變更，重新加載...")
 			var newCfg config.BuConfig

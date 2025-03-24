@@ -1,8 +1,11 @@
 server:
-  port: 8080
+  port: 8081
   host: "localhost"
-
-database:
-  user: "admin"
-  password: "secret"
-  name: "mydb"
+  namespace: "bbbb"
+  secretkey: "secretkey"
+  refeshkey: "refreskkey"
+redis:
+  port: 6379
+  host: "127.0.0.1"
+  password: ""
+  db: 1
