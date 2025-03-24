@@ -2,6 +2,7 @@ package authserver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	jwt5 "github.com/golang-jwt/jwt/v5"
@@ -13,6 +14,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 	"yaml/api/models/login"
 	"yaml/common"
@@ -119,7 +121,7 @@ func run() error {
 	if err != nil {
 		log.Fatal("JWT Error:" + err.Error())
 	}
-	router.POST("login", loginHandler)
+	router.POST("login", LoginHandler)
 	// 沒作保護
 
 	router.Run(serverport)
@@ -127,7 +129,7 @@ func run() error {
 	return nil
 }
 
-func generateToken(username string) (string, int64, error) {
+func generateToken(username string) (string, string, int64, error) {
 
 	expirationTime := time.Now().Add(1 * time.Hour).Unix() // Token 過期時間 (1小時)
 	claims := &login.Claims{
@@ -139,21 +141,40 @@ func generateToken(username string) (string, int64, error) {
 	}
 
 	// 簽發 Token
-	token := jwt5.NewWithClaims(jwt5.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(login.JwtSecret)
+	accessToken := jwt5.NewWithClaims(jwt5.SigningMethodHS256, claims)
+	tokenString, err := accessToken.SignedString(login.JwtSecret)
 	if err != nil {
-		return "", 0, err
+		return "", "", 0, err
 	}
 
-	return tokenString, expirationTime, nil
+	refreshClaims := &login.Claims{
+		Username: username,
+		RegisteredClaims: jwt5.RegisteredClaims{
+			ExpiresAt: jwt5.NewNumericDate(time.Now().Add(common.RefreshTokenExpire)),
+			IssuedAt:  jwt5.NewNumericDate(time.Now()),
+		},
+	}
+	refreshToken, err := jwt5.NewWithClaims(jwt5.SigningMethodHS256, refreshClaims).SignedString(login.JwtSecret)
+	if err != nil {
+		return "", "", 0, err
+	}
+	ctx := context.Background()
+
+	err = common.RedisCli.Set(ctx, "refresh:"+username, refreshToken, common.RefreshTokenExpire).Err()
+	if err != nil {
+		return "", "", 0, err
+	}
+
+	return tokenString, refreshToken, expirationTime, nil
 }
 
-func loginHandler(c *gin.Context) {
+func LoginHandler(c *gin.Context) {
 
 	var loginRequest = login.LoginRequest
 
 	if err := c.ShouldBindJSON(&loginRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request", "details": err.Error()})
+
 		return
 	}
 
@@ -162,19 +183,128 @@ func loginHandler(c *gin.Context) {
 		return
 	}
 
-	token, expiresAt, err := generateToken(loginRequest.Username)
+	token, refreshtoekn, expiresAt, err := generateToken(loginRequest.Username)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
 		return
 	}
 
-	ctx := context.Background()
-	err = common.RedisCli.Set(ctx, "token:"+loginRequest.Username, token, time.Hour).Err()
-	if err != nil {
-		fmt.Println("Redis 記錄 Token 失敗:", err)
-	}
 	c.JSON(http.StatusOK, gin.H{
-		"token":      token,
-		"expires_at": expiresAt,
+		"token":         token,
+		"refresh_token": refreshtoekn,
+		"expires_at":    expiresAt,
 	})
+}
+
+func AuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		tokenString := c.GetHeader("Authorization")
+		if tokenString == "" || !strings.HasPrefix(tokenString, "Bearer ") {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token missing"})
+			c.Abort()
+			return
+		}
+		// 移除 "Bearer " 前綴
+		tokenString = strings.TrimPrefix(tokenString, "Bearer ")
+
+		ctx := context.Background()
+		if _, err := common.RedisCli.Get(ctx, "blacklist:"+tokenString).Result(); err == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token revoked"})
+			c.Abort()
+			return
+		}
+
+		claims := &login.Claims{}
+		token, err := jwt5.ParseWithClaims(tokenString, claims, func(token *jwt5.Token) (interface{}, error) {
+			return login.JwtSecret, nil
+		})
+
+		// 驗證 Token
+		if err != nil || !token.Valid {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+			c.Abort()
+			return
+		}
+		c.Set("username", claims.Username)
+		c.Next()
+	}
+}
+
+func RefreshTokenHandler(c *gin.Context) {
+
+	var request struct {
+		RefreshToken string `json:"refresh_token"`
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	// 解析 Refresh Token
+	claims, err := ValidateToken(request.RefreshToken)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid refresh token"})
+		return
+	}
+
+	// 從 Redis 確認 Refresh Token 是否有效
+	ctx := context.Background()
+	storedToken, err := common.RedisCli.Get(ctx, "refresh:"+claims.Username).Result()
+	if err != nil || storedToken != request.RefreshToken {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Refresh token expired"})
+		return
+	}
+
+	// 產生新 Token
+	accessToken, refreshToken, time, err := generateToken(claims.Username)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"access_token":  accessToken,
+		"refresh_token": refreshToken,
+		"expire":        time,
+	})
+}
+
+// 驗證 Token
+func ValidateToken(tokenString string) (*login.Claims, error) {
+	claims := &login.Claims{}
+	token, err := jwt5.ParseWithClaims(tokenString, claims, func(token *jwt5.Token) (interface{}, error) {
+		return login.JwtSecret, nil
+	})
+
+	if err != nil || !token.Valid {
+		return nil, errors.New("invalid token")
+	}
+
+	return claims, nil
+}
+
+func LogoutHandler(c *gin.Context) {
+	tokenString := c.GetHeader("Authorization")
+	if tokenString == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "No token provided"})
+		return
+	}
+
+	// 解析 Token
+	claims, err := ValidateToken(tokenString)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return
+	}
+	fmt.Printf(claims.Username)
+	// 加入黑名單（Redis 記錄 token）
+	ctx := context.Background()
+	err = common.RedisCli.Set(ctx, "blacklist:"+tokenString, "true", common.AccessTokenExpire).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not logout"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
 }

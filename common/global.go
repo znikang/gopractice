@@ -2,6 +2,7 @@ package common
 
 import (
 	"sync"
+	"time"
 	"yaml/common/config"
 )
 
@@ -14,6 +15,9 @@ var (
 	Bargconfig config.BuConfig
 	once       sync.Once
 )
+
+const AccessTokenExpire = time.Minute * 15
+const RefreshTokenExpire = time.Hour * 24 * 7
 
 func init() {
 	Bargconfig.Server.Port = 1234

@@ -1,10 +1,8 @@
 package server
 
 import (
-	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	jwt5 "github.com/golang-jwt/jwt/v5"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/config_client"
 	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
@@ -13,8 +11,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"log"
 	"net/http"
-	"strings"
-	"yaml/api/models/login"
+	"yaml/cmd/authserver"
 	"yaml/common"
 	"yaml/common/config"
 	yamlredis "yaml/redis"
@@ -97,8 +94,8 @@ func run() error {
 	fmt.Println("✅ 成功加載 Nacos 配置！")
 	common.Bargconfig = *newCfg
 	err = client.ListenConfig(vo.ConfigParam{
-		DataId: "mysqltest",
-		Group:  "DEFAULT_GROUP",
+		DataId: cfg.Server.Dataid,
+		Group:  cfg.Server.Group,
 		OnChange: func(namespace, group, dataId, data string) {
 			fmt.Println("🔄 檢測到配置變更，重新加載...")
 			var newCfg config.BuConfig
@@ -116,8 +113,11 @@ func run() error {
 	router := gin.Default()
 	serverport := fmt.Sprintf("0.0.0.0:%d", newCfg.Server.Port)
 	//router.GET("test", myapi.PrintMessage).Use(myapi.PrintMessage)
+	router.POST("login", authserver.LoginHandler)
+	router.POST("logout", authserver.LogoutHandler)
 
-	router.GET("/protected", authMiddleware(), protectedHandler)
+	router.POST("refreshtoken", authserver.RefreshTokenHandler)
+	router.GET("protected", authserver.AuthMiddleware(), protectedHandler)
 
 	router.Run(serverport)
 
@@ -126,38 +126,4 @@ func run() error {
 func protectedHandler(c *gin.Context) {
 	username, _ := c.Get("username")
 	c.JSON(http.StatusOK, gin.H{"message": "Welcome!", "user": username})
-}
-
-func authMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		tokenString := c.GetHeader("Authorization")
-		if tokenString == "" || !strings.HasPrefix(tokenString, "Bearer ") {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token missing"})
-			c.Abort()
-			return
-		}
-		// 移除 "Bearer " 前綴
-		tokenString = strings.TrimPrefix(tokenString, "Bearer ")
-
-		ctx := context.Background()
-		if _, err := common.RedisCli.Get(ctx, "blacklist:"+tokenString).Result(); err == nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token revoked"})
-			c.Abort()
-			return
-		}
-
-		claims := &login.Claims{}
-		token, err := jwt5.ParseWithClaims(tokenString, claims, func(token *jwt5.Token) (interface{}, error) {
-			return login.JwtSecret, nil
-		})
-
-		// 驗證 Token
-		if err != nil || !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
-			c.Abort()
-			return
-		}
-		c.Set("username", claims.Username)
-		c.Next()
-	}
 }
