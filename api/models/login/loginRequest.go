@@ -2,7 +2,6 @@ package login
 
 import (
 	jwt5 "github.com/golang-jwt/jwt/v5"
-	"yaml/common"
 )
 
 var LoginRequest struct {
@@ -10,7 +9,8 @@ var LoginRequest struct {
 	Password string `json:"password"`
 }
 
-var JwtSecret = []byte(common.Bargconfig.Server.Secrectkey)
+var JwtSecret string
+var RefshToeknSecret string
 
 type Claims struct {
 	Username string `json:"username"`

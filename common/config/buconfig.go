@@ -2,9 +2,10 @@ package config
 
 type BuConfig struct {
 	Server struct {
-		Port       uint64 `yaml:"port"`
-		Host       string `yaml:"host"`
-		Secrectkey string `yaml:"secretkey"`
+		Port      uint64 `yaml:"port"`
+		Host      string `yaml:"host"`
+		Secretkey string `yaml:"secretkey"`
+		Refeshkey string `yaml:"refeshkey"`
 	} `yaml:"server"`
 
 	Redis struct {

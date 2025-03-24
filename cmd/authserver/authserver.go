@@ -118,10 +118,9 @@ func run() error {
 	router := gin.Default()
 	serverport := fmt.Sprintf("0.0.0.0:%d", newCfg.Server.Port)
 
-	if err != nil {
-		log.Fatal("JWT Error:" + err.Error())
-	}
 	router.POST("login", LoginHandler)
+	router.POST("logout", LogoutHandler)
+	router.POST("refreshtoken", RefreshTokenHandler)
 	// 沒作保護
 
 	router.Run(serverport)
@@ -131,7 +130,8 @@ func run() error {
 
 func generateToken(username string) (string, string, int64, error) {
 
-	expirationTime := time.Now().Add(1 * time.Hour).Unix() // Token 過期時間 (1小時)
+	expirationTime := time.Now().Add(common.AccessTokenExpire).Unix() // Token 過期時間 (1小時)
+	//time.Now().Add(time.Minute * 1)
 	claims := &login.Claims{
 		Username: username,
 		RegisteredClaims: jwt5.RegisteredClaims{
@@ -139,31 +139,31 @@ func generateToken(username string) (string, string, int64, error) {
 			IssuedAt:  jwt5.NewNumericDate(time.Now()),
 		},
 	}
-
+	var JWTSecret = []byte(login.JwtSecret)
 	// 簽發 Token
-	accessToken := jwt5.NewWithClaims(jwt5.SigningMethodHS256, claims)
-	tokenString, err := accessToken.SignedString(login.JwtSecret)
+	tokenString, err := jwt5.NewWithClaims(jwt5.SigningMethodHS256, claims).SignedString(JWTSecret)
 	if err != nil {
 		return "", "", 0, err
 	}
-
+	expirationRefreshTime := time.Now().Add(common.RefreshTokenExpire).Unix()
 	refreshClaims := &login.Claims{
 		Username: username,
 		RegisteredClaims: jwt5.RegisteredClaims{
-			ExpiresAt: jwt5.NewNumericDate(time.Now().Add(common.RefreshTokenExpire)),
+			ExpiresAt: jwt5.NewNumericDate(time.Unix(expirationRefreshTime, 0)),
 			IssuedAt:  jwt5.NewNumericDate(time.Now()),
 		},
 	}
-	refreshToken, err := jwt5.NewWithClaims(jwt5.SigningMethodHS256, refreshClaims).SignedString(login.JwtSecret)
+	var RefshToekn = []byte(login.RefshToeknSecret)
+	refreshToken, err := jwt5.NewWithClaims(jwt5.SigningMethodHS256, refreshClaims).SignedString(RefshToekn)
 	if err != nil {
 		return "", "", 0, err
 	}
-	ctx := context.Background()
+	//ctx := context.Background()
 
-	err = common.RedisCli.Set(ctx, "refresh:"+username, refreshToken, common.RefreshTokenExpire).Err()
-	if err != nil {
-		return "", "", 0, err
-	}
+	//err = common.RedisCli.Set(ctx, "refresh:"+username, refreshToken, common.RefreshTokenExpire).Err()
+	//if err != nil {
+	//	return "", "", 0, err
+	//}
 
 	return tokenString, refreshToken, expirationTime, nil
 }
@@ -207,6 +207,13 @@ func AuthMiddleware() gin.HandlerFunc {
 		// 移除 "Bearer " 前綴
 		tokenString = strings.TrimPrefix(tokenString, "Bearer ")
 
+		claims, err := TokenValidate(tokenString)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+			c.Abort()
+			return
+		}
+
 		ctx := context.Background()
 		if _, err := common.RedisCli.Get(ctx, "blacklist:"+tokenString).Result(); err == nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token revoked"})
@@ -214,23 +221,35 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		claims := &login.Claims{}
-		token, err := jwt5.ParseWithClaims(tokenString, claims, func(token *jwt5.Token) (interface{}, error) {
-			return login.JwtSecret, nil
-		})
-
-		// 驗證 Token
-		if err != nil || !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
-			c.Abort()
-			return
-		}
 		c.Set("username", claims.Username)
 		c.Next()
 	}
 }
 
 func RefreshTokenHandler(c *gin.Context) {
+
+	tokenString := c.GetHeader("Authorization")
+	if tokenString == "" || !strings.HasPrefix(tokenString, "Bearer ") {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Token missing"})
+		c.Abort()
+		return
+	}
+	// 移除 "Bearer " 前綴
+	tokenString = strings.TrimPrefix(tokenString, "Bearer ")
+
+	claims, err := TokenValidate(tokenString)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		c.Abort()
+		return
+	}
+
+	ctx := context.Background()
+	if _, err := common.RedisCli.Get(ctx, "blacklist:"+tokenString).Result(); err == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Token revoked"})
+		c.Abort()
+		return
+	}
 
 	var request struct {
 		RefreshToken string `json:"refresh_token"`
@@ -242,17 +261,15 @@ func RefreshTokenHandler(c *gin.Context) {
 	}
 
 	// 解析 Refresh Token
-	claims, err := ValidateToken(request.RefreshToken)
+	_, err = RefshTokenValidate(request.RefreshToken)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid refresh token"})
 		return
 	}
 
-	// 從 Redis 確認 Refresh Token 是否有效
-	ctx := context.Background()
-	storedToken, err := common.RedisCli.Get(ctx, "refresh:"+claims.Username).Result()
-	if err != nil || storedToken != request.RefreshToken {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Refresh token expired"})
+	err = common.RedisCli.Set(ctx, "blacklist:"+tokenString, "true", common.AccessTokenExpire).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not logout"})
 		return
 	}
 
@@ -264,17 +281,32 @@ func RefreshTokenHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"access_token":  accessToken,
+		"token":         accessToken,
 		"refresh_token": refreshToken,
 		"expire":        time,
 	})
 }
 
 // 驗證 Token
-func ValidateToken(tokenString string) (*login.Claims, error) {
+func TokenValidate(tokenString string) (*login.Claims, error) {
 	claims := &login.Claims{}
 	token, err := jwt5.ParseWithClaims(tokenString, claims, func(token *jwt5.Token) (interface{}, error) {
-		return login.JwtSecret, nil
+		var jWTSecret = []byte(login.JwtSecret)
+		return jWTSecret, nil
+	})
+
+	if err != nil || !token.Valid {
+		return nil, errors.New("invalid token")
+	}
+
+	return claims, nil
+}
+
+func RefshTokenValidate(tokenString string) (*login.Claims, error) {
+	claims := &login.Claims{}
+	token, err := jwt5.ParseWithClaims(tokenString, claims, func(token *jwt5.Token) (interface{}, error) {
+		var refshToeknSecret = []byte(login.RefshToeknSecret)
+		return refshToeknSecret, nil
 	})
 
 	if err != nil || !token.Valid {
@@ -286,13 +318,17 @@ func ValidateToken(tokenString string) (*login.Claims, error) {
 
 func LogoutHandler(c *gin.Context) {
 	tokenString := c.GetHeader("Authorization")
-	if tokenString == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "No token provided"})
+
+	if tokenString == "" || !strings.HasPrefix(tokenString, "Bearer ") {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Token missing"})
+		c.Abort()
 		return
 	}
+	// 移除 "Bearer " 前綴
+	tokenString = strings.TrimPrefix(tokenString, "Bearer ")
 
 	// 解析 Token
-	claims, err := ValidateToken(tokenString)
+	claims, err := TokenValidate(tokenString)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 		return

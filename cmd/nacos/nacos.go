@@ -81,6 +81,7 @@ func run() error {
 		Group:  "DEFAULT_GROUP",
 		OnChange: func(namespace, group, dataId, data string) {
 			fmt.Println("🔄 檢測到配置變更，重新加載...")
+
 			var newCfg config.ServerConfig
 			if err := yaml.Unmarshal([]byte(data), &newCfg); err == nil {
 				cfg = &newCfg

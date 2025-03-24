@@ -11,6 +11,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"log"
 	"net/http"
+	"yaml/api/models/login"
 	"yaml/cmd/authserver"
 	"yaml/common"
 	"yaml/common/config"
@@ -93,6 +94,8 @@ func run() error {
 	fmt.Printf("🌍 伺服器運行於 %s:%d\n", newCfg.Server.Host, newCfg.Server.Port)
 	fmt.Println("✅ 成功加載 Nacos 配置！")
 	common.Bargconfig = *newCfg
+	login.JwtSecret = newCfg.Server.Secretkey
+	login.RefshToeknSecret = newCfg.Server.Refeshkey
 	err = client.ListenConfig(vo.ConfigParam{
 		DataId: cfg.Server.Dataid,
 		Group:  cfg.Server.Group,
@@ -101,6 +104,8 @@ func run() error {
 			var newCfg config.BuConfig
 			if err := yaml.Unmarshal([]byte(data), &newCfg); err == nil {
 				common.Bargconfig = newCfg
+				login.JwtSecret = newCfg.Server.Secretkey
+				login.RefshToeknSecret = newCfg.Server.Refeshkey
 				fmt.Println("✅ 配置已更新！")
 			} else {
 				fmt.Println("❌ 配置解析失敗！")
@@ -115,7 +120,6 @@ func run() error {
 	//router.GET("test", myapi.PrintMessage).Use(myapi.PrintMessage)
 	router.POST("login", authserver.LoginHandler)
 	router.POST("logout", authserver.LogoutHandler)
-
 	router.POST("refreshtoken", authserver.RefreshTokenHandler)
 	router.GET("protected", authserver.AuthMiddleware(), protectedHandler)
 

@@ -16,8 +16,8 @@ var (
 	once       sync.Once
 )
 
-const AccessTokenExpire = time.Minute * 15
-const RefreshTokenExpire = time.Hour * 24 * 7
+const AccessTokenExpire = time.Minute * 20
+const RefreshTokenExpire = time.Hour
 
 func init() {
 	Bargconfig.Server.Port = 1234
