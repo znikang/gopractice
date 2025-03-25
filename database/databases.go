@@ -1,4 +1,4 @@
-package Database
+package database
 
 import (
 	"fmt"
@@ -29,7 +29,7 @@ func InitializeDatabases() *gorm.DB {
 		return nil
 	}
 	dbsetting.SetConnMaxLifetime(time.Duration(maxLifetime) * time.Second)
-	dbsetting.SetMaxIdleConns(maxIdleConns)
+	dbsetting.SetMaxIdleConns(maxOpenConns)
 	dbsetting.SetMaxOpenConns(maxIdleConns)
 	return conn
 }
