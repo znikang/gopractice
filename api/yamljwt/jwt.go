@@ -8,7 +8,7 @@ import (
 	"log"
 	"net/http"
 	"time"
-	"webserver/common"
+	"webserver/common/vo"
 )
 
 var (
@@ -57,7 +57,7 @@ func identityHandler() func(c *gin.Context) interface{} {
 
 		claims := jwt.ExtractClaims(c)
 		fmt.Printf("identityHandler 1 %+v ", claims)
-		return &common.User{
+		return &vo.User{
 			UserName: claims[identityKey].(string),
 		}
 	}
@@ -67,7 +67,7 @@ func payloadFunc() func(data interface{}) jwt4.MapClaims {
 	fmt.Printf("payloadFunc 1 ")
 	return func(data interface{}) jwt4.MapClaims {
 		fmt.Println("payloadFunc 4 ")
-		if v, ok := data.(*common.User); ok {
+		if v, ok := data.(*vo.User); ok {
 			return jwt4.MapClaims{
 				identityKey: v.UserName,
 			}
@@ -80,7 +80,7 @@ func authenticator() func(c *gin.Context) (interface{}, error) {
 	fmt.Println("authenticator")
 	return func(c *gin.Context) (interface{}, error) {
 		fmt.Println("authenticato 2r")
-		var loginVals common.Login
+		var loginVals vo.Login
 		if err := c.ShouldBind(&loginVals); err != nil {
 			return "", jwt.ErrMissingLoginValues
 		}
@@ -88,7 +88,7 @@ func authenticator() func(c *gin.Context) (interface{}, error) {
 		password := loginVals.PassWord
 
 		if (userID == "admin" && password == "admin") || (userID == "test" && password == "test") {
-			return &common.User{
+			return &vo.User{
 				UserName:  userID,
 				LastName:  "Bo-Yi",
 				FirstName: "Wu",
@@ -102,7 +102,7 @@ func authorizator() func(data interface{}, c *gin.Context) bool {
 	fmt.Println("authorizator")
 	return func(data interface{}, c *gin.Context) bool {
 		fmt.Println("authorizator 3")
-		if v, ok := data.(*common.User); ok && v.UserName == "admin" {
+		if v, ok := data.(*vo.User); ok && v.UserName == "admin" {
 			return true
 		}
 		return false
@@ -156,7 +156,7 @@ func HelloHandler(c *gin.Context) {
 	user, _ := c.Get(identityKey)
 	c.JSON(200, gin.H{
 		"userID":   claims[identityKey],
-		"userName": user.(*common.User).UserName,
+		"userName": user.(*vo.User).UserName,
 		"text":     "Hello World.",
 	})
 }

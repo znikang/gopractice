@@ -5,9 +5,11 @@ import (
 	"github.com/spf13/cobra"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"
+	"gorm.io/gen"
 	"gorm.io/gorm"
 	"log"
 	"time"
+	"webserver/database/orm"
 )
 
 var (
@@ -24,12 +26,6 @@ var (
 	}
 )
 
-type User struct {
-	ID   uint   `gorm:"primaryKey"`
-	Name string `gorm:"size:100"`
-	Age  int
-}
-
 type Usermysql struct {
 	//gorm為model的tag標籤，v2版的auto_increment要放在type裡面，v1版是放獨立定義
 	ID        int64     `gorm:"type:bigint(20) NOT NULL auto_increment;primary_key;" json:"id,omitempty"`
@@ -43,7 +39,7 @@ type Usermysql struct {
 var dbselect string
 
 func init() {
-	StartCmd.PersistentFlags().StringVar(&dbselect, "database", "", "Start server with provided dbtabase")
+	StartCmd.Flags().StringVar(&dbselect, "database", "", "Start server with provided dbtabase")
 }
 
 const (
@@ -51,14 +47,32 @@ const (
 	Password     string = "1qaz@WSX"
 	Addr         string = "192.168.1.171"
 	Port         int    = 3306
-	Database     string = "gormtest"
+	Database     string = "blocking"
 	MaxLifetime  int    = 10
 	MaxOpenConns int    = 10
 	MaxIdleConns int    = 10
 )
 
-func mysqlf() {
+func mysqloutput() {
 
+	addr := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True", UserName, Password, Addr, Port, Database)
+	db, _ := gorm.Open(mysql.Open(addr), &gorm.Config{})
+
+	// 初始化 GORM 生成器
+	g := gen.NewGenerator(gen.Config{
+		OutPath: "./model", // 輸出目錄
+	})
+
+	// 設定 GORM 數據庫
+	g.UseDB(db)
+	// 自動生成 Model（根據資料表）
+	g.GenerateAllTable()
+
+	// 寫入檔案
+	g.Execute()
+}
+func mysqlf() {
+	fmt.Println("mysqlf")
 	addr := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True", UserName, Password, Addr, Port, Database)
 	conn, err := gorm.Open(mysql.Open(addr), &gorm.Config{})
 	db, err1 := conn.DB()
@@ -69,30 +83,36 @@ func mysqlf() {
 	db.SetConnMaxLifetime(time.Duration(MaxLifetime) * time.Second)
 	db.SetMaxIdleConns(MaxIdleConns)
 	db.SetMaxOpenConns(MaxOpenConns)
-	conn.AutoMigrate(&Usermysql{})
-
-	migrator := conn.Migrator()
-	has := migrator.HasTable(&User{})
-	//has := migrator.HasTable("GG")
-	if !has {
-		fmt.Println("table not exist")
+	err = conn.AutoMigrate(&Usermysql{})
+	if err != nil {
+		log.Fatal("❌ AutoMigrate 失敗:", err)
 	}
+	err = conn.AutoMigrate(&orm.Acl{})
+	if err != nil {
+		log.Fatal("❌ AutoMigrate 失敗:", err)
+	}
+	//migrator := conn.Migrator()
+	//	has := migrator.HasTable(&orm.User{})
+	//has := migrator.HasTable("GG")
+	//	if !has {
+	//		fmt.Println("table not exist")
+	//	}
 }
 func sqlitef() {
 	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
-	db.AutoMigrate(&User{})
-	db.Create(&User{Name: "Alice", Age: 25})
-	db.Create(&User{Name: "Bob", Age: 30})
+	db.AutoMigrate(&orm.User{})
+	db.Create(&orm.User{Name: "Alice", Age: 25})
+	db.Create(&orm.User{Name: "Bob", Age: 30})
 
-	var user User
+	var user orm.User
 	db.First(&user, 1) // 透過 ID 查找
 	fmt.Println("User 1:", user)
 
 	// 查詢所有使用者
-	var users []User
+	var users []orm.User
 	db.Find(&users)
 	fmt.Println("All Users:", users)
 
@@ -105,6 +125,9 @@ func run() error {
 	if dbselect == "mysql" {
 		fmt.Println("mysql")
 		mysqlf()
+	} else if dbselect == "mysqlout" {
+		fmt.Println("mysqlout")
+		mysqloutput()
 	} else if dbselect == "sqlite" {
 		fmt.Println("sqlite")
 		sqlitef()
