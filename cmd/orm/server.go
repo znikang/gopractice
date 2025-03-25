@@ -45,9 +45,9 @@ func init() {
 const (
 	UserName     string = "root"
 	Password     string = "1qaz@WSX"
-	Addr         string = "192.168.1.171"
+	Addr         string = "192.168.1.215"
 	Port         int    = 3306
-	Database     string = "blocking"
+	Database     string = "g_paypay"
 	MaxLifetime  int    = 10
 	MaxOpenConns int    = 10
 	MaxIdleConns int    = 10
