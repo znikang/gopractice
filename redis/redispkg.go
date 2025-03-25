@@ -1,4 +1,4 @@
-package yamlredis
+package radispkg
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 	"log"
 	"strconv"
-	"yaml/common"
+	"webserver/common"
 )
 
 type Redis struct {

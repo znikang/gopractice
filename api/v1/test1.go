@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"yaml/common"
+	"webserver/common"
 )
 
 type TestData struct {

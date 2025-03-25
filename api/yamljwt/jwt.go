@@ -8,7 +8,7 @@ import (
 	"log"
 	"net/http"
 	"time"
-	"yaml/common"
+	"webserver/common"
 )
 
 var (

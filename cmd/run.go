@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"os"
-	"yaml/cmd/authserver"
-	"yaml/cmd/nacos"
-	ormserver "yaml/cmd/orm"
-	"yaml/cmd/server"
-	"yaml/cmd/version"
+	"webserver/cmd/authserver"
+	"webserver/cmd/nacos"
+	ormserver "webserver/cmd/orm"
+	"webserver/cmd/server"
+	"webserver/cmd/version"
 )
 
 func tip() {

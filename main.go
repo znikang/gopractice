@@ -1,7 +1,7 @@
 package main
 
 import (
-	"yaml/cmd"
+	"webserver/cmd"
 )
 
 func main() {

@@ -17,10 +17,10 @@ import (
 	"net/http"
 	"strings"
 	"time"
-	"yaml/api/models/login"
-	"yaml/common"
-	"yaml/common/config"
-	yamlredis "yaml/redis"
+	"webserver/api/models/login"
+	"webserver/common"
+	"webserver/common/config"
+	radispkg "webserver/redis"
 )
 
 var (
@@ -114,7 +114,7 @@ func run() error {
 		},
 	})
 
-	common.RedisCli = yamlredis.InitializeRedis()
+	common.RedisCli = radispkg.InitializeRedis()
 
 	router := gin.Default()
 	serverport := fmt.Sprintf("0.0.0.0:%d", newCfg.Server.Port)

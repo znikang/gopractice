@@ -12,14 +12,14 @@ import (
 	"log"
 	"net/http"
 
-	"yaml/Database"
-	myapi "yaml/api"
-	"yaml/api/models/login"
-	v22 "yaml/api/v2"
-	"yaml/cmd/authserver"
-	"yaml/common"
-	"yaml/common/config"
-	yamlredis "yaml/redis"
+	"webserver/Database"
+	myapi "webserver/api"
+	"webserver/api/models/login"
+	v22 "webserver/api/v2"
+	"webserver/cmd/authserver"
+	"webserver/common"
+	"webserver/common/config"
+	yamlredis "webserver/redis"
 )
 
 var (

@@ -11,11 +11,11 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 	"log"
-	v22 "yaml/api/v2"
-	"yaml/api/yamljwt"
-	"yaml/common"
-	"yaml/common/config"
-	yamlredis "yaml/redis"
+	v22 "webserver/api/v2"
+	"webserver/api/yamljwt"
+	"webserver/common"
+	"webserver/common/config"
+	redisSource "webserver/redis"
 )
 
 var (
@@ -109,7 +109,7 @@ func run() error {
 		},
 	})
 
-	common.RedisCli = yamlredis.InitializeRedis()
+	common.RedisCli = redisSource.InitializeRedis()
 
 	router := gin.Default()
 	serverport := fmt.Sprintf("0.0.0.0:%d", newCfg.Server.Port)

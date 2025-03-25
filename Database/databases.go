@@ -5,18 +5,13 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"time"
-	"yaml/common"
+	"webserver/common"
 )
 
 const (
-	UserName     string = "root"
-	Password     string = "1qaz@WSX"
-	Addr         string = "192.168.1.171"
-	Port         int    = 3306
-	Database     string = "gormtest"
-	MaxLifetime  int    = 10
-	MaxOpenConns int    = 10
-	MaxIdleConns int    = 10
+	maxLifetime  int = 10
+	maxOpenConns int = 10
+	maxIdleConns int = 10
 )
 
 func InitializeDatabases() *gorm.DB {
@@ -33,8 +28,8 @@ func InitializeDatabases() *gorm.DB {
 		fmt.Println("get db failed:", err)
 		return nil
 	}
-	dbsetting.SetConnMaxLifetime(time.Duration(MaxLifetime) * time.Second)
-	dbsetting.SetMaxIdleConns(MaxIdleConns)
-	dbsetting.SetMaxOpenConns(MaxOpenConns)
+	dbsetting.SetConnMaxLifetime(time.Duration(maxLifetime) * time.Second)
+	dbsetting.SetMaxIdleConns(maxIdleConns)
+	dbsetting.SetMaxOpenConns(maxIdleConns)
 	return conn
 }

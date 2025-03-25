@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 	"log"
-	"yaml/common/config"
+	"webserver/common/config"
 )
 
 var (

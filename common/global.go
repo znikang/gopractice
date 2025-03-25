@@ -3,7 +3,7 @@ package common
 import (
 	"sync"
 	"time"
-	"yaml/common/config"
+	"webserver/common/config"
 )
 
 const (
