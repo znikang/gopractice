@@ -12,5 +12,5 @@ COPY ./webserver /webserver
 COPY ./config/settings.yml /config/settings.yml
 
 EXPOSE 8081
-RUN  chmod +x /go-admin
+RUN  chmod +x /webserver
 CMD ["/webserver","server","-c", "/config/settings.yml"]
