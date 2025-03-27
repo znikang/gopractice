@@ -19,5 +19,19 @@ eval $(minikube docker-env)
 
 docker build -t my-app .
 ### 需要這段
-yaml 
+yaml   只讀取 local docker image
 imagePullPolicy: Never
+
+
+
+
+
+### minikube 指令
+
+kubectl apply -f xxx.yaml 可以匯入 
+
+kubectl delete -f xxx.yaml 刪除匯入的內容 
+
+>minikube service gopractice-service 做外部的link service
+
+
