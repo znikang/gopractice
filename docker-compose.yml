@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  go-admin-api:
+    container_name: go-practice
+    image: go-practice:latest
+    privileged: true
+    restart: always
+    ports:
+      - 8081:8081
+    networks:
+      - myweb
+networks:
+  myweb:
+    driver: bridge

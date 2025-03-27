@@ -33,7 +33,7 @@ func getNacosConfig(client config_client.IConfigClient, dataID, group string) (*
 	return &cfg, nil
 }
 
-func InirNacos(cfg *config.ServerConfig) {
+func InitNacos(cfg *config.ServerConfig) {
 
 	serverConfig := []constant.ServerConfig{
 		{
@@ -62,9 +62,6 @@ func InirNacos(cfg *config.ServerConfig) {
 	login.JwtSecret = newCfg.Server.Secretkey
 	login.RefshToeknSecret = newCfg.Server.Refeshkey
 
-	common.Bargconfig = *newCfg
-	login.JwtSecret = newCfg.Server.Secretkey
-	login.RefshToeknSecret = newCfg.Server.Refeshkey
 	err = client.ListenConfig(vo.ConfigParam{
 		DataId: cfg.Server.Dataid,
 		Group:  cfg.Server.Group,

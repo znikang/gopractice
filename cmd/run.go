@@ -20,10 +20,10 @@ func tip() {
 }
 
 var rootCmd = &cobra.Command{
-	Use:          "mysql",
-	Short:        "mysql",
+	Use:          "webserver",
+	Short:        "",
 	SilenceUsage: true,
-	Long:         `mysql`,
+	Long:         `webserver `,
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
 			tip()

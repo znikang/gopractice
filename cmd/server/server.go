@@ -46,7 +46,7 @@ func run() error {
 	fmt.Printf("🌍 Nacos %s:%d\n", cfg.Server.Host, cfg.Server.Port)
 	fmt.Printf("🛢  Nacos: %s (用戶: %s %s)\n", cfg.Server.Namespace, cfg.Server.Dataid, cfg.Server.Group)
 
-	nacospkg.InirNacos(cfg)
+	nacospkg.InitNacos(cfg)
 
 	initTools()
 
