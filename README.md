@@ -20,7 +20,7 @@ eval $(minikube docker-env)
 docker build -t my-app .
 ### 需要這段
 yaml   只讀取 local docker image
-imagePullPolicy: Never
+imagePullPolicy: Never or IfNotPresent
 
 
 
@@ -35,3 +35,9 @@ kubectl delete -f xxx.yaml 刪除匯入的內容
 >minikube service gopractice-service 做外部的link service
 
 
+
+
+### ingress
+
+>使用 minikube 需要
+> minikube addons enable ingress

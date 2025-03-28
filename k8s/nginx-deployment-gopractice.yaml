@@ -17,13 +17,14 @@ spec:
       containers:
       - name: go-practice
         image: go-practice:latest
-        imagePullPolicy: Never
+        imagePullPolicy: IfNotPresent
+       
         ports:
         - containerPort: 8081
         volumeMounts:
         - name: go-practice-storage
           mountPath: /data
-    
+
       volumes:
       - name: go-practice-storage
         persistentVolumeClaim:
