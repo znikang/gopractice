@@ -6,6 +6,8 @@ import (
 	"github.com/spf13/cobra"
 	"os"
 	"webserver/cmd/authserver"
+	"webserver/cmd/grpcclient"
+	"webserver/cmd/grpcserver"
 	"webserver/cmd/nacos"
 	ormserver "webserver/cmd/orm"
 	"webserver/cmd/server"
@@ -44,6 +46,8 @@ func init() {
 	rootCmd.AddCommand(nacos.StartCmd)
 	rootCmd.AddCommand(ormserver.StartCmd)
 	rootCmd.AddCommand(authserver.StartCmd)
+	rootCmd.AddCommand(grpcserver.StartCmd)
+	rootCmd.AddCommand(grpcclient.StartCmd)
 
 }
 

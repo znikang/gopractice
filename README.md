@@ -8,7 +8,8 @@ my self practice go lang
 
 minikube mount /Users/znikanghuang/k8s/mnt:/mnt
 
-minikube start --mount --mount-string="/Users/znikanghuang/k8s/mnt:/mm/mnt"
+minikube start --mount --mount-string="/Users/znikanghuang/k8s/mnt:/mm/mnt" --network=192.168.130.0/24 
+--driver=hyperkit
 
 minikube ssh 進入minikube 後可以查看 /mm 是否有link 到外面的資料夾
 
@@ -39,5 +40,17 @@ kubectl delete -f xxx.yaml 刪除匯入的內容
 
 ### ingress
 
+minikube addons list
+
 >使用 minikube 需要
 > minikube addons enable ingress
+
+
+
+### protobuf 
+
+protoc --go_out=. --go-grpc_out=. example.proto 
+產生 protuc 相關檔案
+
+
+
