@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-rpcserver
+  namespace: default
+  labels:
+    app: go-rpcserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: go-rpcserver
+  template:
+    metadata:
+      labels:
+        app: go-rpcserver
+    spec:
+      containers:
+        - name: my-webserver
+          image: my-webserver:latest
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 8081
+

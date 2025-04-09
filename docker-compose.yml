@@ -1,8 +1,8 @@
 version: '3.8'
 services:
   go-admin-api:
-    container_name: my-app
-    image: my-app:1.0
+    container_name: my-webserver
+    image: my-webserver:latest
     privileged: true
     restart: always
     ports:

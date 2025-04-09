@@ -18,7 +18,18 @@ PersistentVolume 只在於 minikube ssh 進入容器內的路徑 還是需要從
 打包 docker 要用 minikube env 
 eval $(minikube docker-env)
 
+##產生 進minikube 的ar版本要很注意 
+> docker info | grep Architecture
+> Architecture: aarch64
+
+所以邊的時候要打入可以使用的 架構
+
+> OOS=linux GOARCH=arm64 go build -o myapp
+
+
 docker build -t --platform linux/arm64 my-app:1.0 .
+
+docker build -t my-webserver:1.0 . 
 
 GOOS=linux GOARCH=amd64 go build -o webserver
 

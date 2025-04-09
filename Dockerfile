@@ -13,4 +13,4 @@ COPY ./config/settings.yml /config/settings.yml
 
 EXPOSE 8081
 RUN  chmod +x /webserver
-CMD ["/webserver","server","-c", "/config/settings.yml"]
+CMD ["/webserver","grpcserver","-c", "/config/settings.yml"]
