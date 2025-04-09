@@ -18,7 +18,11 @@ PersistentVolume 只在於 minikube ssh 進入容器內的路徑 還是需要從
 打包 docker 要用 minikube env 
 eval $(minikube docker-env)
 
-docker build -t my-app .
+docker build -t --platform linux/arm64 my-app:1.0 .
+
+GOOS=linux GOARCH=amd64 go build -o webserver
+
+
 ### 需要這段
 yaml   只讀取 local docker image
 imagePullPolicy: Never or IfNotPresent

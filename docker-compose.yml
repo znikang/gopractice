@@ -1,8 +1,8 @@
 version: '3.8'
 services:
   go-admin-api:
-    container_name: go-practice
-    image: go-practice:latest
+    container_name: my-app
+    image: my-app:1.0
     privileged: true
     restart: always
     ports:
