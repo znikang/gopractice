@@ -1,15 +1,36 @@
+
+
 # gopractice
+
+副標
+---
+
 my self practice go lang
 
-
+###  golang 運行時的arch 版本
+> 當Mac M1 chip  使用的 docker desktop  裡面跑的是 amd64  所以 你得使用
+>  OOS=linux GOARCH=amd64 go build -o myapp    在打包進  docker
+> 
+> 當 Mac M1 chip  的minikube 是跑  Architecture: aarch64
+>  所以  docker 要用  去包file 
+> docker build -t --platform linux/arm64 my-app:1.0 .
+> 
 
 ### 放進 本地 minikube 
 啟動 minikube 需要mount  外部地址 在使用PV PVC  去做內部 link 
 
 minikube mount /Users/znikanghuang/k8s/mnt:/mnt
 
-minikube start --mount --mount-string="/Users/znikanghuang/k8s/mnt:/mm/mnt" --network=192.168.130.0/24 
---driver=hyperkit
+minikube start --mount --mount-string="/Users/znikanghuang/k8s/mnt:/mm/mnt"  --driver=qemu2    
+> for mac m1 系列 
+
+
+```aidl
+ go lang
+```
+> --arch amd64 
+
+> --arch arm64
 
 minikube ssh 進入minikube 後可以查看 /mm 是否有link 到外面的資料夾
 
@@ -22,9 +43,11 @@ eval $(minikube docker-env)
 > docker info | grep Architecture
 > Architecture: aarch64
 
-所以邊的時候要打入可以使用的 架構
+> 所以編譯後  要打入的binary 要使用的 arm64 架構 不然能跑
 
 > OOS=linux GOARCH=arm64 go build -o myapp
+> 
+> > OOS=linux GOARCH=amd64 go build -o myapp
 
 
 docker build -t --platform linux/arm64 my-app:1.0 .

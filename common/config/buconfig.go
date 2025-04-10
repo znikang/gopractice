@@ -22,4 +22,9 @@ type BuConfig struct {
 		Password string `yaml:"password"`
 		DB       string `yaml:"db"`
 	} `yaml:"mysql"`
+
+	RpcConnect struct {
+		Port uint64 `yaml:"port"`
+		Host string `yaml:"host"`
+	} `yaml:"grpc"`
 }

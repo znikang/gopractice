@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"log"
+	"time"
 	"webserver/common"
 	"webserver/common/config"
 	"webserver/database"
@@ -60,9 +61,10 @@ func run() error {
 
 	nacospkg.InitNacos(cfg)
 	initTools()
-	serverport := fmt.Sprintf("%s:%d", common.Bargconfig.Server.Host, common.Bargconfig.Server.Port)
-
-	conn, err := grpc.Dial(serverport, grpc.WithInsecure(), grpc.WithBlock())
+	serverport := fmt.Sprintf("%s:%d", common.Bargconfig.RpcConnect.Host, common.Bargconfig.RpcConnect.Port)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	conn, err := grpc.DialContext(ctx, serverport, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		log.Fatalf("could not connect: %v", err)
 	}
@@ -76,7 +78,7 @@ func run() error {
 		log.Fatalf("could not greet: %v", err)
 	}
 
-	fmt.Printf("Response: %s", res.Message)
-
+	fmt.Printf("Response: %s\n", res.Message)
+	fmt.Println("end")
 	return nil
 }
