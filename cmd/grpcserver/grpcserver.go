@@ -41,15 +41,31 @@ func initTools() {
 	common.OrmCli = database.InitializeDatabases()
 }
 
-type greeterServer struct {
-	pb.UnimplementedGreeterServer
+type mainServer struct {
+	pb.UnimplementedMainServiceServer
+}
+type gameServer struct {
+	pb.UnimplementedGameServiceServer
 }
 
-func (s *greeterServer) SayHello(ctx context.Context, req *pb.HelloRequest) (*pb.HelloReply, error) {
+// 這寫法也ok
+//type Server struct {
+//	greeterpb.UnimplementedGreeterServer
+//	mathpb.UnimplementedCalculatorServer
+//}
+
+func (s *mainServer) SayHello(ctx context.Context, req *pb.HelloRequest) (*pb.HelloReply, error) {
 
 	//...
 
 	return &pb.HelloReply{Message: "Hello " + req.Name}, nil
+}
+
+func (s *gameServer) SayHello(ctx context.Context, req *pb.GameRequest) (*pb.GameReply, error) {
+
+	//...
+
+	return &pb.GameReply{Message: "Hello " + req.Name}, nil
 }
 
 func run() error {
@@ -72,7 +88,9 @@ func run() error {
 	}
 
 	grpcServer := grpc.NewServer()
-	pb.RegisterGreeterServer(grpcServer, &greeterServer{})
+
+	pb.RegisterMainServiceServer(grpcServer, &mainServer{})
+	pb.RegisterGameServiceServer(grpcServer, &gameServer{})
 
 	log.Println("gRPC server listening on port {}", serverport)
 	if err := grpcServer.Serve(lis); err != nil {

@@ -41,11 +41,40 @@ func initTools() {
 	common.OrmCli = database.InitializeDatabases()
 }
 
-type greeterServer struct {
-	pb.UnimplementedGreeterServer
+type Clients struct {
+	GameClient pb.GameServiceClient
+	MainClient pb.MainServiceClient
+	conn       *grpc.ClientConn
 }
 
-func (s *greeterServer) SayHello(ctx context.Context, req *pb.HelloRequest) (*pb.HelloReply, error) {
+func NewClients(grpcAddr string) (*Clients, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	conn, err := grpc.DialContext(ctx, grpcAddr, grpc.WithInsecure(), grpc.WithBlock())
+	if err != nil {
+		log.Fatalf("could not connect: %v", err)
+	}
+
+	return &Clients{
+		GameClient: pb.NewGameServiceClient(conn),
+		MainClient: pb.NewMainServiceClient(conn),
+		conn:       conn,
+	}, nil
+}
+
+func (c *Clients) CloseRpc() {
+	if c.conn != nil {
+		if err := c.conn.Close(); err != nil {
+			log.Printf("Error closing gRPC conn: %v", err)
+		}
+	}
+}
+
+type mainServer struct {
+	pb.UnimplementedMainServiceServer
+}
+
+func (s *mainServer) SayHello(ctx context.Context, req *pb.HelloRequest) (*pb.HelloReply, error) {
 	return &pb.HelloReply{Message: "Hello " + req.Name}, nil
 }
 
@@ -62,18 +91,15 @@ func run() error {
 	nacospkg.InitNacos(cfg)
 	initTools()
 	serverport := fmt.Sprintf("%s:%d", common.Bargconfig.RpcConnect.Host, common.Bargconfig.RpcConnect.Port)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	conn, err := grpc.DialContext(ctx, serverport, grpc.WithInsecure(), grpc.WithBlock())
-	if err != nil {
-		log.Fatalf("could not connect: %v", err)
-	}
-	defer conn.Close()
 
-	c := pb.NewGreeterClient(conn)
+	clients, err := NewClients(serverport)
+	defer clients.CloseRpc()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
 
 	req := &pb.HelloRequest{Name: "ChatGPT"}
-	res, err := c.SayHello(context.Background(), req)
+	res, err := clients.MainClient.SayHello(ctx, req)
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)
 	}

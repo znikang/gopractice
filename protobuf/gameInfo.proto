@@ -4,14 +4,14 @@ package RpcStruct;
 option go_package = "./protoObj";
 
 
-service MainService {
-  rpc SayHello (HelloRequest) returns (HelloReply);
+service GameService {
+  rpc SayHello (GameRequest) returns (GameReply);
 }
 
-message HelloRequest {
+message GameRequest {
   string name = 1;
 }
 
-message HelloReply {
+message GameReply {
   string message = 1;
 }

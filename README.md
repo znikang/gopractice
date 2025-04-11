@@ -88,7 +88,7 @@ minikube addons list
 ### protobuf 
 
 protoc --go_out=. --go-grpc_out=. example.proto 
-產生 protuc 相關檔案
+產生 protoc 相關檔案
 
 
 
