@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
 	"webserver/common"
@@ -91,6 +92,8 @@ func run() error {
 
 	pb.RegisterMainServiceServer(grpcServer, &mainServer{})
 	pb.RegisterGameServiceServer(grpcServer, &gameServer{})
+
+	reflection.Register(grpcServer)
 
 	log.Println("gRPC server listening on port {}", serverport)
 	if err := grpcServer.Serve(lis); err != nil {
