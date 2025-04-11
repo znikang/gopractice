@@ -55,8 +55,8 @@ func run() error {
 	serverport := fmt.Sprintf("%s:%d", common.Bargconfig.RpcConnect.Host, common.Bargconfig.RpcConnect.Port)
 
 	clients, err := grpccli.NewClients(serverport)
-
-	defer clients.CloseRpc()
+	common.GrpcCli = clients
+	//defer clients.CloseRpc()
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
