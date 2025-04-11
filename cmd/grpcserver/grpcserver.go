@@ -48,7 +48,7 @@ type gameServer struct {
 	pb.UnimplementedGameServiceServer
 }
 
-// 這寫法也ok
+//
 //type Server struct {
 //	greeterpb.UnimplementedGreeterServer
 //	mathpb.UnimplementedCalculatorServer
