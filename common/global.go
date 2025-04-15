@@ -1,7 +1,6 @@
 package common
 
 import (
-	"sync"
 	"time"
 	"webserver/common/config"
 )
@@ -13,7 +12,6 @@ const (
 
 var (
 	Bargconfig config.BuConfig
-	once       sync.Once
 )
 
 const AccessTokenExpire = time.Minute * 20
