@@ -1,6 +1,7 @@
 package croncli
 
 import (
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"webserver/common"
 )
@@ -29,6 +30,10 @@ func initTools() {
 
 func run() error {
 
-	common.Log().Println("dasda")
+	common.Log().WithFields(logrus.Fields{
+		"event": "user_signup",
+		"user":  "jack",
+	}).Info("A new user has signed up")
+
 	return nil
 }

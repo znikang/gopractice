@@ -4,6 +4,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"webserver/cmd"
 	"webserver/common"
+	kafkahook "webserver/kafka"
 )
 
 func main() {
@@ -15,6 +16,9 @@ func main() {
 		LogLevel:    logrus.DebugLevel, // or logrus.InfoLevel
 	}
 	common.InitLogger(cf)
+
+	kafkaHook := kafkahook.NewKafkaHook("localhost:9092", "logrus-topic")
+	common.Log().AddHook(kafkaHook)
 
 	cmd.Execute()
 
