@@ -45,14 +45,17 @@ eval $(minikube docker-env)
 
 > 所以編譯後  要打入的binary 要使用的 arm64 架構 不然能跑
 
-> OOS=linux GOARCH=arm64 go build -o myapp
-> 
-> > OOS=linux GOARCH=amd64 go build -o myapp
+> GOOS=linux GOARCH=arm64 go build -o myapp
+>   
+> > GOOS=linux GOARCH=amd64 go build -o myapp
 
+GOOS=linux GOARCH=arm64 go build -o webserver main.go
 
-docker build -t --platform linux/arm64 my-app:1.0 .
+docker build -t --platform linux/arm64 my-cron:1.0 .
 
 docker build -t my-webserver:1.0 . 
+
+docker build -t my-cron:1.0 .
 
 GOOS=linux GOARCH=amd64 go build -o webserver
 

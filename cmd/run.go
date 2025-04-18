@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 	"os"
 	"webserver/cmd/authserver"
+	croncli "webserver/cmd/cron"
 	"webserver/cmd/grpcclient"
 	"webserver/cmd/grpcserver"
 	"webserver/cmd/nacos"
@@ -48,6 +49,7 @@ func init() {
 	rootCmd.AddCommand(authserver.StartCmd)
 	rootCmd.AddCommand(grpcserver.StartCmd)
 	rootCmd.AddCommand(grpcclient.StartCmd)
+	rootCmd.AddCommand(croncli.StartCmd)
 
 }
 

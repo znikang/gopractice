@@ -1,4 +1,4 @@
-FROM --platform=linux/arm64 alpine
+FROM alpine
 
 # ENV GOPROXY https://goproxy.cn/
 
@@ -13,4 +13,4 @@ COPY ./config/settings.yml /config/settings.yml
 
 EXPOSE 8081
 RUN  chmod +x /webserver
-CMD ["/webserver","cron"]
+CMD ["/webserver","grpcserver","-c", "/config/settings.yml"]
