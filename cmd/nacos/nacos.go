@@ -27,7 +27,7 @@ var (
 	}
 )
 
-func getConfig(client config_client.IConfigClient, dataID, group string) (*config.ServerConfig, error) {
+func getConfig(client config_client.IConfigClient, dataID, group string) (*config.NacosServerConfig, error) {
 	// 從 Nacos 獲取配置
 	content, err := client.GetConfig(vo.ConfigParam{
 		DataId: dataID,
@@ -38,7 +38,7 @@ func getConfig(client config_client.IConfigClient, dataID, group string) (*confi
 	}
 
 	// 解析 YAML 配置
-	var cfg config.ServerConfig
+	var cfg config.NacosServerConfig
 	err = yaml.Unmarshal([]byte(content), &cfg)
 	if err != nil {
 		return nil, fmt.Errorf("❌ 解析 YAML 失敗: %v", err)
@@ -82,7 +82,7 @@ func run() error {
 		OnChange: func(namespace, group, dataId, data string) {
 			fmt.Println("🔄 檢測到配置變更，重新加載...")
 
-			var newCfg config.ServerConfig
+			var newCfg config.NacosServerConfig
 			if err := yaml.Unmarshal([]byte(data), &newCfg); err == nil {
 				cfg = &newCfg
 				fmt.Println("✅ 配置已更新！")

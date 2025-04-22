@@ -1,5 +1,14 @@
 package config
 
+type Database struct {
+	Name     string `yaml:"name"`
+	Port     int    `yaml:"port"`
+	Host     string `yaml:"host"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+	DB       string `yaml:"db"`
+}
+
 type BuConfig struct {
 	Server struct {
 		Port      uint64 `yaml:"port"`
@@ -15,13 +24,9 @@ type BuConfig struct {
 		DB       int    `yaml:"db"`
 	} `yaml:"redis"`
 
-	Database struct {
-		Port     int    `yaml:"port"`
-		Host     string `yaml:"host"`
-		Username string `yaml:"username"`
-		Password string `yaml:"password"`
-		DB       string `yaml:"db"`
-	} `yaml:"mysql"`
+	Database Database `yaml:"mysql"`
+
+	Databases []Database `yaml:"mysqls"`
 
 	RpcConnect struct {
 		Port uint64 `yaml:"port"`

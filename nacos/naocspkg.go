@@ -33,7 +33,7 @@ func getNacosConfig(client config_client.IConfigClient, dataID, group string) (*
 	return &cfg, nil
 }
 
-func InitNacos(cfg *config.ServerConfig) {
+func InitNacos(cfg *config.NacosServerConfig) {
 
 	serverConfig := []constant.ServerConfig{
 		{

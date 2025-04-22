@@ -10,9 +10,27 @@ redis:
   password: ""
   db: 1
 
+grpc:
+  host: "192.168.105.44"
+  port: 80
+
 mysql:
   port: 3306
   host: "192.168.1.171"
   username: "root"
   password: "1qaz@WSX"
   db: "gormtest"
+
+mysqls:
+  - name: mysql1
+    port: 3306
+    host: "192.168.1.171"
+    username: "root"
+    password: "1qaz@WSX"
+    db: "gormtest"
+  - name: mysql2
+      port: 3306
+      host: "192.168.1.172"
+      username: "root"
+      password: "1qaz@WSX"
+      db: "gormtest"

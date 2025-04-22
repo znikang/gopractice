@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-type ServerConfig struct {
+type NacosServerConfig struct {
 	Server struct {
 		Port      uint64 `yaml:"port"`
 		Host      string `yaml:"host"`
@@ -15,13 +15,13 @@ type ServerConfig struct {
 	} `yaml:"server"`
 }
 
-func LoadConfig(filename string) (*ServerConfig, error) {
+func LoadConfig(filename string) (*NacosServerConfig, error) {
 	data, err := os.ReadFile(filename) // 读取文件
 	if err != nil {
 		return nil, err
 	}
 
-	var config ServerConfig
+	var config NacosServerConfig
 
 	err = yaml.Unmarshal(data, &config) // 解析 YAML
 	if err != nil {
