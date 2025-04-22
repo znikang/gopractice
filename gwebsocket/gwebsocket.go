@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-var clients = make(map[string]*websocket.Conn)
+var SocketClients = make(map[string]*websocket.Conn)
 var clientsLock = sync.RWMutex{}
 
 var upgrader = websocket.Upgrader{
@@ -45,14 +45,14 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 	})
 
 	clientsLock.Lock()
-	clients[userID] = conn
+	SocketClients[userID] = conn
 	clientsLock.Unlock()
 
 	//defer conn.Close()
 
 	defer func() {
 		clientsLock.Lock()
-		delete(clients, userID)
+		delete(SocketClients, userID)
 		clientsLock.Unlock()
 		conn.Close()
 		fmt.Println("User disconnected:", userID)
@@ -69,7 +69,7 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 				conn.Close()
 
 				clientsLock.Lock()
-				delete(clients, userID)
+				delete(SocketClients, userID)
 				clientsLock.Unlock()
 
 				return
@@ -89,7 +89,7 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 // 主動發送訊息給特定使用者
 func sendMessageToUser(userID, message string) {
 	clientsLock.RLock()
-	conn, ok := clients[userID]
+	conn, ok := SocketClients[userID]
 	clientsLock.RUnlock()
 	if ok {
 		err := conn.WriteMessage(websocket.TextMessage, []byte(message))
