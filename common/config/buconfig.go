@@ -1,5 +1,19 @@
 package config
 
+type Server struct {
+	Port      uint64 `yaml:"port"`
+	Host      string `yaml:"host"`
+	Secretkey string `yaml:"secretkey"`
+	Refeshkey string `yaml:"refeshkey"`
+}
+
+type Redis struct {
+	Port     int    `yaml:"port"`
+	Host     string `yaml:"host"`
+	Password string `yaml:"password"`
+	DB       int    `yaml:"db"`
+}
+
 type Database struct {
 	Name     string `yaml:"name"`
 	Port     int    `yaml:"port"`
@@ -10,19 +24,9 @@ type Database struct {
 }
 
 type BuConfig struct {
-	Server struct {
-		Port      uint64 `yaml:"port"`
-		Host      string `yaml:"host"`
-		Secretkey string `yaml:"secretkey"`
-		Refeshkey string `yaml:"refeshkey"`
-	} `yaml:"server"`
+	Server Server `yaml:"server"`
 
-	Redis struct {
-		Port     int    `yaml:"port"`
-		Host     string `yaml:"host"`
-		Password string `yaml:"password"`
-		DB       int    `yaml:"db"`
-	} `yaml:"redis"`
+	Redis Redis `yaml:"redis"`
 
 	Database Database `yaml:"mysql"`
 
