@@ -13,6 +13,7 @@ import (
 	ormserver "webserver/cmd/orm"
 	"webserver/cmd/server"
 	"webserver/cmd/version"
+	websocketcli "webserver/cmd/websocket"
 )
 
 func tip() {
@@ -50,7 +51,7 @@ func init() {
 	rootCmd.AddCommand(grpcserver.StartCmd)
 	rootCmd.AddCommand(grpcclient.StartCmd)
 	rootCmd.AddCommand(croncli.StartCmd)
-
+	rootCmd.AddCommand(websocketcli.StartCmd)
 }
 
 func Execute() {

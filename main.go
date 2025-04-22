@@ -17,7 +17,7 @@ func main() {
 	}
 	common.InitLogger(cf)
 
-	kafkaHook := kafkahook.NewKafkaHook("localhost:9092", "logrus-topic")
+	kafkaHook := kafkahook.NewKafkaHook("192.168.0.146:9092", "logrus-topic")
 	common.Log().AddHook(kafkaHook)
 
 	cmd.Execute()
